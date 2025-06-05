@@ -1,4 +1,4 @@
-# Python filename: Sxxx
+# Python filename: generate-8bit-RSA-keyPair.py
 # 
 # @author James Woods
 # @date May 2025
@@ -7,6 +7,7 @@
 
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.backends import default_backend
 
 # RSA BASICS FOR BEGINNERS:
 # RSA is a "public key" cryptography system where you have two keys:
@@ -92,3 +93,19 @@ print("1. This key is ONLY for learning - it's far too small for real use!")
 print("2. Real RSA keys use primes that are 4096 bits long (600+ decimal digits)")
 print("3. This 8-bit key could be broken in less than a second by a computer")
 print("4. Never use small primes like this in production systems!")
+
+# SAVE PUBLIC KEY TO PEM
+with open("public_key.pem", "wb") as pub_file:
+    pub_file.write(pem)
+    print("\n📁 Public key written to 'public_key.pem'")
+
+# OPTIONAL: Save private key too
+private_pem = private_key.private_bytes(
+    encoding=serialization.Encoding.PEM,
+    format=serialization.PrivateFormat.TraditionalOpenSSL,
+    encryption_algorithm=serialization.NoEncryption()
+)
+
+with open("private_key.pem", "wb") as priv_file:
+    priv_file.write(private_pem)
+    print("📁 Private key written to 'private_key.pem'")
