@@ -1,4 +1,4 @@
-# Python filename: classicalEdition.py
+# Python filename: Shor-classicalEdition.py
 # 
 # @author James Woods
 # @date May 2025
@@ -141,9 +141,15 @@ try:
         )
     )
     print("✅ Somehow worked with OAEP!")
-except Exception as e:
-    print(f"❌ Failed as expected: {str(e)[:100]}...")
+except Exception as err:
+    print(f"❌ Failed as expected: {str(err)[:100]}...")
     print("This is why real RSA keys need to be much larger!")
+
+try:
+    print(f"Public information known to attacker: N={N}, e={e}")
+except NameError as err:
+    print(f"⚠️ Variable missing: {err}")
+    exit(1)
 
 # STEP 5: Security demonstration - show how easy it is to break
 print("\n🔓 STEP 5: Breaking our 8-bit RSA key...")
@@ -152,39 +158,29 @@ print("Let's pretend we're an attacker who only knows the public key (N, e)")
 print(f"Public information known to attacker: N={N}, e={e}")
 print("Attacker's goal: Find the private exponent d")
 
-# Factor N to find p and q (easy for small numbers)
+# Factoring N to retrieve p and q
 print(f"Factoring N={N}...")
+found_p, found_q = None, None
 for i in range(2, int(N**0.5) + 1):
     if N % i == 0:
         found_p, found_q = i, N // i
         print(f"Found secret primes: p={found_p}, q={found_q}")
         break
 
-# Calculate φ(N) and then d
-phi_n = (found_p - 1) * (found_q - 1)
-found_d = pow(e, -1, phi_n)  # Modular inverse
-print(f"Calculated φ(N) = {phi_n}")
-print(f"Calculated private exponent d = {found_d}")
+if found_p and found_q:
+    # Calculate φ(N)
+    phi_n = (found_p - 1) * (found_q - 1)
+    print(f"Calculated φ(N) = {phi_n}")
 
-# Verify we broke it correctly
-if found_d == d:
-    print("🚨 PRIVATE KEY COMPLETELY COMPROMISED!")
-    print("Attacker can now decrypt all messages!")
+    # Use known e to compute d
+    try:
+        found_d = pow(e, -1, phi_n)
+        print(f"Calculated private exponent d = {found_d}")
+        if found_d == d:
+            print("🚨 PRIVATE KEY COMPLETELY COMPROMISED!")
+        else:
+            print("⚠️  Decryption key mismatch (still broken though).")
+    except ValueError:
+        print("❌ Modular inverse failed — e may not be coprime with φ(N)")
 else:
-    print("Something went wrong in the attack...")
-
-# STEP 6: Final educational summary
-print("\n" + "="*70)
-print("🎓 EDUCATIONAL SUMMARY")
-print("="*70)
-print("What we learned about RSA:")
-print("✓ Encryption: (message^e) mod N")
-print("✓ Decryption: (ciphertext^d) mod N") 
-print("✓ Security depends on factoring N being computationally hard")
-print("✓ Our 8-bit example: Factoring 187 takes milliseconds")
-print("✓ Real 2048-bit keys: Factoring would take billions of years")
-print("✓ Message size must be smaller than the modulus")
-print("✓ Proper padding is essential for security")
-print("\n⚠️  REMEMBER: Never use small keys like this in real applications!")
-print("Real RSA requires 2048+ bit keys (600+ digit numbers)")
-print("="*70)
+    print("❌ Failed to factor N — unexpected for an 8-bit demo.")
